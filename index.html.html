@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prelims Master - Daily Quiz</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg-light: #f9f9f9;
+    --bg-dark: #1b1e28;
+    --text-light: #222;
+    --text-dark: #fff;
+    --accent: #00c2c2;
+    --option-bg: #283752;
+    --option-hover: #374151;
+    --correct: #2ab573;
+    --incorrect: #bb444b;
+  }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  body.light {
+    background: var(--bg-light);
+    color: var(--text-light);
+  }
+  header, footer {
+    background: #262c3a;
+    padding: 1rem;
+    flex: 0 0 auto;
+    text-align: center;
+  }
+  header h1 {
+    margin: 0;
+    color: #fff;
+  }
+  header .marks-info {
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+  }
+  header .marks-info span.green {color: var(--correct);}
+  header .marks-info span.red {color: var(--incorrect);}
+  .footer {
+    font-size: 0.85rem;
+    color: #ffffff;
+  }
+  .controls-area {
+    background: #262c3a;
+    padding: 0.5rem;
+    flex: 0 0 auto;
+    text-align: center;
+  }
+  .controls-area label {
+    margin: 0 0.75rem;
+    color: #fff;
+  }
+  .timer {font-size:1.1rem; margin:0.5rem 0; color:#fbbf24;}
+  .scroll-area {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+  .question {
+    background: #262c3a;
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  body.light .question {background:#eee;}
+  .question h3 {margin-bottom:0.6rem;}
+  .options button {
+    display:block; width:100%; margin:0.4rem 0; padding:0.6rem;
+    border:none; border-radius:5px; background:var(--option-bg); color:#8fadeb; cursor:pointer; text-align: left;
+  }
+  .options button:hover {background:var(--option-hover);}
+  .options button.correct {background:var(--correct); color:#fff;}
+  .options button.incorrect {background:var(--incorrect); color:#fff;}
+  .options button.locked {pointer-events:none; opacity:0.7;}
+  .controls {
+    margin-top:0.5rem;
+  }
+  .controls button {
+    margin:0.4rem;
+    padding:0.5rem 1rem;
+    border:none;
+    border-radius:5px;
+    font-size:1rem;
+    cursor:pointer;
+  }
+  .submit-btn {background:var(--accent); color:white;}
+  .summary-btn {background:#fbbf24; color:black;}
+  .reattempt-btn {background:var(--correct); color:white;}
+  .summary-box {
+    text-align:center;
+    background:#1f2a38;
+    padding:1rem;
+    border-radius:6px;
+    margin-top:1rem;
+    display:none;
+  }
+  body.light .summary-box {background:#ddd;}
+.options button.selected {
+  opacity: 0.6;
+}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>Prelims Master - Daily Quiz</h1>
+  <div class="marks-info">
+    <span class="green">✔ Correct: +2 marks</span> | 
+    <span class="red">✘ Incorrect: -1/3 mark</span>
+  </div>
+</header>
+<div class="controls-area">
+  <div class="mode-toggle">
+    <label><input type="radio" name="mode" value="instant" checked onchange="setMode(this.value)"> Instant Mode</label>
+    <label><input type="radio" name="mode" value="test" onchange="setMode(this.value)"> Test Mode</label>
+  </div>
+  <div class="theme-toggle">
+    Theme:
+    <label><input type="radio" name="theme" value="light" onchange="setTheme(this.value)"> Light</label>
+    <label><input type="radio" name="theme" value="dark" onchange="setTheme(this.value)"> Dark</label>
+    <label><input type="radio" name="theme" value="system" onchange="setTheme(this.value)" checked> System</label>
+  </div>
+  <div class="timer" id="timerBox" style="display:none;">Time Left: <span id="timer">20:00</span></div>
+  <div class="controls">
+    <button class="submit-btn" onclick="submitQuiz()">Submit Quiz</button>
+    <button class="summary-btn" onclick="viewSummary()">View Summary</button>
+    <button class="reattempt-btn" onclick="reattemptQuiz()">Reattempt</button>
+  </div>
+</div>
+<div class="scroll-area" id="quiz"></div>
+<footer class="footer">
+  © 2025 Prelims Master. All rights reserved.<br/>
+  Developed by: Ashutosh Dwivedi<br/>
+  📞 Contact: +91-9452052751 | 📧 Email: officialprelimsmaster@gmail.com
+</footer>
+<div class="summary-box" id="summaryBox"></div>
+<script>
+
+const quizData = [
+  {
+    question: `Q1. With reference to the Indian Constitution, consider the following statements:<br><br>1. The term “secular” was inserted into the Preamble by the 42nd Amendment.<br>2. Fundamental Duties were inspired partly by the Constitution of the erstwhile USSR.<br>3. The 44th Amendment Act restored the duration of Lok Sabha to 5 years.<br><br>Which of the statements given above are correct?`,
+    options: ["1 and 2 only","1 and 3 only","2 and 3 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q2. Consider the following statements regarding the Anti-Corruption Bureau (ACB):<br><br>1. It investigates offences under the Prevention of Corruption Act, 1988.<br>2. Its jurisdiction and control rest with the respective State Government.<br>3. The CBI requires prior approval to take over any case already being investigated by the ACB.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 0
+  },
+  {
+    question: `Q3. Which of the following are assigned to the State List in the Seventh Schedule of the Indian Constitution?`,
+    options: ["1, 2 and 4 only","1 and 3 only","2 and 3 only","1, 2, 3 and 4"],
+    answer: 0
+  },
+  {
+    question: `Q4. Consider the following statements about the Sendai Framework for Disaster Risk Reduction:<br><br>1. It was adopted at the Third UN World Conference on Disaster Risk Reduction.<br>2. It sets targets for reducing disaster mortality and economic loss.<br>3. It is legally binding on all signatory nations.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 0
+  },
+  {
+    question: `Q5. With reference to orographic precipitation, consider the following statements:<br><br>1. It occurs when moist air is forced to rise over a mountain barrier.<br>2. It is commonly associated with rain shadows on the windward side.<br>3. It can lead to intense localized rainfall events such as cloudbursts.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 and 3 only","2 and 3 only","1 and 2 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q6. Consider the following statements regarding the Shanghai Cooperation Organisation (SCO):<br><br>1. It was founded in Shanghai in 2001.<br>2. All decisions are taken by consensus.<br>3. Its official languages are Chinese and Russian.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q7. Consider the following statements regarding Axiom Mission-4:<br><br>1. It was a fully commercial mission to the International Space Station.<br>2. The mission included scientific experiments contributed by India.<br>3. The crew included astronauts from both government and private backgrounds.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q8. Which of the following factors contribute to increasing frequency of extreme rainfall events in India?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q9. Consider the following statements:<br><br>1. Right to vote is a fundamental right under Article 19.<br>2. Supreme Court has held that the right to know the background of candidates is part of freedom of expression.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 only","2 only","Both 1 and 2","Neither 1 nor 2"],
+    answer: 1
+  },
+  {
+    question: `Q10. Which of the following are components of the Pradhan Mantri Krishi Sinchai Yojana (PMKSY)?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q11. Consider the following pairs:<br><br>1. Chandrayaan-3 — Soft landing on the Moon<br>2. Gaganyaan — Crewed spaceflight mission<br>3. IN-SPACe — Regulation of private space sector<br><br>How many of the above pairs are correctly matched?`,
+    options: ["Only one","Only two","All three","None"],
+    answer: 2
+  },
+  {
+    question: `Q12. With reference to the Convention on Biological Diversity, consider the following statements:<br><br>1. It was adopted at the Earth Summit in Rio de Janeiro in 1992.<br>2. India is a party to the Convention.<br>3. The Nagoya Protocol is related to Access and Benefit Sharing under this Convention.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q13. Which of the following bodies has statutory mandate under the Disaster Management Act, 2005?`,
+    options: ["1 and 2 only","2 and 3 only","1 and 3 only","1, 2 and 3"],
+    answer: 3
+  },
+  {
+    question: `Q14. Which of the following statements is/are correct about the International Solar Alliance?`,
+    options: ["1 only","2 only","Both 1 and 2","Neither 1 nor 2"],
+    answer: 2
+  },
+  {
+    question: `Q15. Consider the following statements regarding the National Infrastructure Pipeline (NIP):<br><br>1. It is a financing mechanism only for railways and highways.<br>2. It aims to improve infrastructure investments by 2025.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 only","2 only","Both 1 and 2","Neither 1 nor 2"],
+    answer: 1
+  },
+  {
+    question: `Q16. With reference to India’s National Clean Air Programme (NCAP), consider the following statements:<br><br>1. It aims for 20–30% reduction in PM2.5 and PM10 concentrations by 2024.<br>2. It is legally binding on States.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 only","2 only","Both 1 and 2","Neither 1 nor 2"],
+    answer: 0
+  },
+  {
+    question: `Q17. Consider the following statements regarding India’s participation in private space missions:<br><br>1. It helps Indian scientists access microgravity research platforms.<br>2. It allows ISRO to test crew module re-entry technologies.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 only","2 only","Both 1 and 2","Neither 1 nor 2"],
+    answer: 0
+  },
+  {
+    question: `Q18. With reference to disaster management, which of the following statements is correct?`,
+    options: ["It is exclusively a Union subject.","It is in the Concurrent List of the Constitution.","It is a State subject.","It is a Residuary subject."],
+    answer: 1
+  },
+  {
+    question: `Q19. Which of the following rivers originates in Himachal Pradesh?`,
+    options: ["Ravi","Mahanadi","Godavari","Narmada"],
+    answer: 0
+  },
+  {
+    question: `Q20. Consider the following statements regarding Minimum Support Price (MSP):<br><br>1. It is recommended by the Commission for Agricultural Costs and Prices.<br>2. It is legally enforceable for all crops.<br><br>Which of the statements given above is/are correct?`,
+    options: ["1 only","2 only","Both 1 and 2","Neither 1 nor 2"],
+    answer: 0
+  }
+];
+
+</script>
+
+<script>
+const quizContainer = document.getElementById("quiz");
+const summaryBox = document.getElementById("summaryBox");
+let userAnswers = new Array(quizData.length).fill(null);
+let isSubmitted = false;
+let currentMode = "instant";
+let timerInterval = null;
+let remainingSecs = 0;
+
+function setTheme(theme) {
+  if (theme === "light") document.body.className = "light";
+  else if (theme === "dark") document.body.className = "";
+  else document.body.className = window.matchMedia("(prefers-color-scheme:dark)").matches ? "" : "light";
+}
+setTheme("system");
+
+function setMode(mode) {
+  currentMode = mode;
+  reattemptQuiz();
+  const timerBox = document.getElementById("timerBox");
+  if (mode === "test") {
+    timerBox.style.display = "block";
+    if (!timerInterval) {
+      remainingSecs = 20 * 60;
+      startTimer();
+    }
+  } else {
+    timerBox.style.display = "none";
+  }
+}
+
+function loadQuiz() {
+  quizContainer.innerHTML = "";
+  quizData.forEach((q, idx) => {
+    const qDiv = document.createElement("div");
+    qDiv.className = "question";
+    qDiv.innerHTML = `<h3>${q.question}</h3>`;
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "options";
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement("button");
+      btn.textContent = opt;
+      btn.onclick = () => selectOption(idx, i, btn);
+      optionsDiv.appendChild(btn);
+    });
+    qDiv.appendChild(optionsDiv);
+    quizContainer.appendChild(qDiv);
+  });
+}
+
+function selectOption(qIdx, optIdx, btn) {
+  if (isSubmitted) return;
+  const options = btn.parentElement.children;
+  for (let b of options) b.classList.remove("selected");
+  btn.classList.add("selected");
+  userAnswers[qIdx] = optIdx;
+  if (currentMode === "instant") {
+    if (optIdx === quizData[qIdx].answer) btn.classList.add("correct");
+    else {
+      btn.classList.add("incorrect");
+      options[quizData[qIdx].answer].classList.add("correct");
+    }
+    for (let b of options) b.classList.add("locked");
+  }
+}
+
+function submitQuiz() {
+  const qDivs = quizContainer.querySelectorAll(".question");
+  qDivs.forEach((qDiv, i) => {
+    const btns = qDiv.querySelectorAll("button");
+    btns.forEach((b, idx) => {
+      b.classList.add("locked");
+      if (currentMode === "test") {
+        if (idx === quizData[i].answer) b.classList.add("correct");
+        else if (userAnswers[i] === idx) b.classList.add("incorrect");
+      }
+    });
+  });
+  isSubmitted = true;
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function viewSummary() {
+  if (!isSubmitted) {
+    alert("Submit Test to get summary.");
+    return;
+  }
+  let correct = 0, attempted = 0, incorrect = 0;
+  quizData.forEach((q, i) => {
+    if (userAnswers[i] != null) {
+      attempted++;
+      if (userAnswers[i] === q.answer) correct++;
+      else incorrect++;
+    }
+  });
+  const accuracy = attempted ? ((correct / attempted) * 100).toFixed(2) : "0.00";
+  const totalMarks = (correct * 2 - incorrect * 0.33).toFixed(2);
+  summaryBox.style.display = "block";
+  summaryBox.innerHTML = `
+  <p><strong>Summary</strong></p>
+  <p>Correct: ${correct}</p>
+  <p>Incorrect: ${incorrect}</p>
+  <p>Accuracy: ${accuracy}%</p>
+  <p>Total Marks: ${totalMarks}</p>`;
+}
+
+function reattemptQuiz() {
+  userAnswers = new Array(quizData.length).fill(null);
+  isSubmitted = false;
+  summaryBox.style.display = "none";
+  clearInterval(timerInterval);
+  timerInterval = null;
+  document.getElementById("timerBox").style.display = "none";
+  loadQuiz();
+}
+
+function startTimer() {
+  const t = document.getElementById("timer");
+  function tick() {
+    let m = Math.floor(remainingSecs / 60), s = remainingSecs % 60;
+    t.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    if (remainingSecs > 0) {
+      remainingSecs--;
+    } else {
+      submitQuiz();
+    }
+  }
+  tick();
+  timerInterval = setInterval(tick, 1000);
+}
+
+loadQuiz();
+</script>
+</body>
+</html>
+
+
